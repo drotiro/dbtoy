@@ -1,22 +1,22 @@
-				DBTOYFS
+			DBToy: Mount your dbms as a filesystem
+			======================================
 
-What is dbtoyfs?
-================
+What is dbtoy?
+--------------
 
-It's a linux filesystem, implemented using fuse.
+It's a Linux filesystem, implemented using fuse.
 Its purpose is to expose the contents of a relational database
 through a set of directories and files.
 
 
-Compiling dbtoyfs
-=================
+Compiling dbtoy
+---------------
 
 To succesfully compile and run dbtoy you need fuse (2.6 and above)
 and the client libraries for the dbms you need to connect to.
-This version supports connections to MySQL and PostgreSQL databases
-(prior versions only supported MySQL).
+This version supports connections to MySQL and PostgreSQL databases.
 There is a "driver" to talk to each dbms, you can enable or disable
-every driver at compile time. You should enable at least one driver...
+every driver at compile time. You should enable at least one driver.
 
 The quickest way build dbtoy is the script 'makeall.sh', included in
 the source distribution. This script looks for the needed libraries
@@ -30,8 +30,9 @@ To get the correct flags, the Makefile uses the scripts provided by the
 dbms developers ('mysql_config' and 'pg_config' respectively) so these
 scripts should be in your $PATH.
 
-Playing with dbtoyfs
-====================
+
+Playing with dbtoy
+------------------
 
 1) First of all, make sure that you can succesfully connect to the
 database. 
@@ -79,12 +80,20 @@ If you feel lucky you can play with the EXPERIMENTAL query file feature:
 "cat data?col=val" where 'col' is a valid column name and 'val' is a feasible
 value for col (and strings must be quoted!)
 
-Other infos
-===========
+Copyright and license
+---------------------
 
-This module, as its name suggests, is not intended for production environments,
-is not stable and has several bugs/limitations, your linux box should not
-explode but I give no warranty, OK?
+DBToy is Copyright (C) 2010 Domenico Rotiroti.
 
-Questions/comments at:
-Domenico Rotiroti <pinguino@thesaguaros.com>
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, version 3 of the License.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU Lesser General Public License for more details.
+
+ A copy of the GNU General Public License is included in the source
+ distribution of this software.
+
