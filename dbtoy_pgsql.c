@@ -1,7 +1,9 @@
 #include "dbtoy.h"
 #include "largetext.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <syslog.h>
+#include <string.h>
 
 #include <libpq-fe.h>
 

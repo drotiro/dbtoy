@@ -1,7 +1,8 @@
 #include "largetext.h"
 #include "stdio.h"
 #include <syslog.h>
-
+#include <stdlib.h>
+#include <string.h>
 
 /* private stuff ...*/
 void lt_docat(struct lt * l,const char * text, long len);
@@ -54,7 +55,7 @@ void lt_docat(struct lt * l,const char * text, long len) {
 		l->lt_size+=incr;
 		l->lt_text = (char *) realloc(l->lt_text,l->lt_size);
 		if(!l->lt_text) {
-			syslog(LOG_ERR,"Out of memory allocating %d bytes",l->lt_size);
+			syslog(LOG_ERR,"Out of memory allocating %ld bytes",l->lt_size);
 		}
 	}
 	strcat(l->lt_text+l->lt_len,text);

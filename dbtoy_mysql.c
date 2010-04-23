@@ -2,6 +2,8 @@
 #include "largetext.h"
 #include <stdio.h>
 #include <syslog.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include <mysql.h>
 
