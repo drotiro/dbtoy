@@ -254,11 +254,9 @@ char**	pgsql_read_types (DBTOY_CONN conn, const char * db, const char * table,
 DBTOY_RES	pgsql_read_data_start(DBTOY_CONN conn, const char * db, const char * table,
 									const char * pars, int * len, int * n_cols)
 {
-	int pos, j, rc;
 	PGresult * res;
 	struct pg_res * r;
 	struct lt * l;
-	char **types = NULL;
 
 	l = lt_new_v("select * from ");
 	lt_cat(l,db);
@@ -278,11 +276,9 @@ DBTOY_RES	pgsql_read_data_start(DBTOY_CONN conn, const char * db, const char * t
 DBTOY_RES	pgsql_read_data_start_from(DBTOY_CONN conn, const char * db, const char * table,
 									const char * pars, int * len, int * n_cols, int from)
 {
-	int pos, j, rc;
 	PGresult * res;
 	struct pg_res * r;
 	struct lt * l;
-	char **types = NULL;
 	char limitbuf[64]="";
 
 	l = lt_new_v("select * from ");

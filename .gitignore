@@ -1,4 +1,4 @@
 #Don't track binaries
 *.o
 dbtoy
-
+Makefile.config

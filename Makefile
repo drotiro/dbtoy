@@ -8,6 +8,8 @@ FUSE_LIBS	:= `pkg-config --libs fuse`
 OBJS := dbtoy.o largetext.o xml_format.o
 DRIVERLIST = ""
 
+include Makefile.config
+
 ifdef MYSQL_DRV
 	CLIENT_FLAGS += -DHAVE_MYSQL_DRV `mysql_config --include`
 	CLIENT_LIBS	+= `mysql_config --libs`
@@ -29,7 +31,12 @@ dbtoy: $(OBJS)
 .c.o:
 	$(CC) $(FUSE_FLAGS) $(CLIENT_FLAGS) -c $< -o $@
 
-dbtoy.o dbtoy_mysql.o: dbtoy.h
+#Dependencies
+dbtoy.o: dbtoy.c dbtoy.h xml_format.h largetext.h
+dbtoy_mysql.o: dbtoy_mysql.c dbtoy.h largetext.h
+dbtoy_pgsql.o: dbtoy_pgsql.c dbtoy.h largetext.h
+largetext.o: largetext.c largetext.h
+xml_format.o: xml_format.c xml_format.h largetext.h dbtoy.h
 
 
 .PHONY: clean 

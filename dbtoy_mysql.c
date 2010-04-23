@@ -107,8 +107,6 @@ int mysql_count_tables(DBTOY_CONN conn, const char * db){
 DBTOY_NAME mysql_what_schema(DBTOY_CONN conn, int schema_num)
 {
 	char * name;
-	MYSQL_RES * res;
-	MYSQL_ROW row;
 	struct my_conn * c = (struct my_conn *)conn;
 
 	if(schema_num>=c->_sch_cnt || schema_num < 0) return NULL;
@@ -170,7 +168,6 @@ DBTOY_NAME	mysql_error_msg(DBTOY_CONN conn)
 char**	mysql_read_types (DBTOY_CONN conn, const char * db, const char * table,
 									int * len)
 {
-	struct my_conn * c = (struct my_conn *) conn;
 	int pos, nrows;
 	MYSQL_RES * res;
 	MYSQL_ROW row;
@@ -197,11 +194,9 @@ char**	mysql_read_types (DBTOY_CONN conn, const char * db, const char * table,
 DBTOY_RES	mysql_read_data_start(DBTOY_CONN conn, const char * db, const char * table,
 									const char * pars, int * len, int * n_cols)
 {
-	int pos, nrows = 0 , ncols = 0, j, rc;
+	int nrows = 0 , ncols = 0, rc;
 	MYSQL_RES * res;
-	MYSQL_ROW row;
 	struct lt * l;
-	char **types = NULL;
 	mysql_select_db(GET_CONN(conn),db);
 	l = lt_new_v("select * from ");
 	lt_cat(l,table);
@@ -226,11 +221,9 @@ DBTOY_RES	mysql_read_data_start(DBTOY_CONN conn, const char * db, const char * t
 DBTOY_RES	mysql_read_data_start_from(DBTOY_CONN conn, const char * db, const char * table,
 									const char * pars, int * len, int * n_cols, int from)
 {
-	int pos, nrows = 0 , ncols = 0, j, rc;
+	int nrows = 0 , ncols = 0, rc;
 	MYSQL_RES * res;
-	MYSQL_ROW row;
 	struct lt * l;
-	char **types = NULL;
 	char limitbuf[64]="";
 
 	mysql_select_db(GET_CONN(conn),db);
