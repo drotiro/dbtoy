@@ -443,7 +443,7 @@ int parse_args(int argc , char* argv[])
 #endif		
 		fprintf(stderr,"\nOptional parameters:\n");
 		fprintf(stderr,"\t-h host      (where the database is running)\n");
-		fprintf(stderr,"\t-i instance  (to choose a PostgreSQL instance, other than postgres)\n");
+		fprintf(stderr,"\t-i instance  (to choose a PostgreSQL database, the default is the same as username)\n");
 		fprintf(stderr,"\t-v           (enable verbose syslogging)\n");
 		fprintf(stderr,"\t-x 'xml prolog'\n\n");
 	}

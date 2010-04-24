@@ -83,7 +83,7 @@ DBTOY_CONN pgsql_connect(const char* host, const char *login, const char *passwo
 	struct pg_conn * conn;
 	char loginbuff[1024]="";
 	PGconn * db_conn;
-	sprintf(loginbuff,"host='%s' user='%s' password='%s' dbname=postgres",
+	sprintf(loginbuff,"host='%s' user='%s' password='%s' ",
 			host,login,password);
 	db_conn = PQconnectdb(loginbuff);
     if(PQstatus(db_conn)==CONNECTION_BAD) return NULL;
@@ -238,7 +238,7 @@ char**	pgsql_read_types (DBTOY_CONN conn, const char * db, const char * table,
 	cur = PQgetvalue(res, 0, 0);
 	while(cur) {
 		nxt = strstr(cur," ");
-		colnum = strtol(cur, nxt, 10);
+		colnum = strtol(cur, NULL, 10);
 		if(colnum > 0 && colnum <= ncols) {
 			colnum-=1; /* starting from zero to access types */
 			free(types[colnum*3+2]);
