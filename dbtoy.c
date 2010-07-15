@@ -13,7 +13,8 @@
 #include <string.h>
 #include <errno.h>
 #include <fcntl.h>
-
+#include <termios.h>
+#include <libgen.h>
 #include <unistd.h>
 #include <syslog.h>
 
@@ -60,6 +61,41 @@ int rh_row;
 char * rh_buf = NULL;
 
 struct dbtoy_driver * lookup_driver();
+
+/*
+ * Utilities from my other projects,
+ * I should move them in a lib
+ */
+void set_echo(int enable)
+{
+  struct termios tio;
+  int tty = fileno(stdin); //a better way?
+
+  if(!tcgetattr(tty, &tio)) {
+    if (enable) tio.c_lflag |= ECHO;
+    else tio.c_lflag &= ~ECHO;
+
+    tcsetattr(tty, TCSANOW, &tio);
+  }
+}
+
+char * askpass(const char * what)
+{
+  char * val = malloc(512);
+  printf("%s ",what);
+  set_echo(0);
+  scanf("%s",val);
+  set_echo(1);
+  printf("\n");
+  return val;
+}
+
+void wipeopt(char * opt)
+{
+	memset(opt, 0, strlen(opt));
+}
+
+
 
 void set_read_hint(const char * path, off_t offset, int currow, char * buf)
 {
@@ -414,6 +450,7 @@ int parse_args(int argc , char* argv[])
 			break;	
 		case 'p':
 			passwd=optarg;
+			wipeopt(optarg);
 			break;
 		case 'x':
 			prolog = optarg;
@@ -431,9 +468,13 @@ int parse_args(int argc , char* argv[])
 			res = 1;
 		}
 	}
-	if(login==NULL || passwd==NULL || dbms==NULL) res=1;
+
+	if(login==NULL || dbms==NULL) res=1;
+	if(passwd==NULL && !res) {
+		passwd = askpass("password: ");
+	}
 	if(res) {
-		fprintf(stderr,"Usage: %s -u user -p passwd -d driver [ optional_params ] mountpoint\n",argv[0]);
+		fprintf(stderr,"Usage: %s -u user -d driver [ optional_params ] mountpoint\n",argv[0]);
 		fprintf(stderr,"\nValid drivers:\n");
 #ifdef HAVE_POSTGRESQL_DRV
 		fprintf(stderr,"\tpostgresql\n");
@@ -442,6 +483,7 @@ int parse_args(int argc , char* argv[])
 		fprintf(stderr,"\tmysql\n");
 #endif		
 		fprintf(stderr,"\nOptional parameters:\n");
+		fprintf(stderr,"\t-p password  (dbtoy will prompt for the password if not present)\n");
 		fprintf(stderr,"\t-h host      (where the database is running)\n");
 		fprintf(stderr,"\t-i instance  (to choose a PostgreSQL database, the default is the same as username)\n");
 		fprintf(stderr,"\t-v           (enable verbose syslogging)\n");
@@ -462,7 +504,7 @@ struct dbtoy_driver * lookup_driver()
 }
 
 void initDbtoy(int argc, char * argv[]) {
-	nargv[0]=argv[0]; //keep program name
+	nargv[0]=basename(strdup(argv[0])); //keep program name
 	nargv[nargc-1]=argv[argc-1]; //keep mountpoint
 	if(parse_args(argc,argv)) {
 		exit(1);
@@ -471,7 +513,7 @@ void initDbtoy(int argc, char * argv[]) {
 	/* choose driver and connect */
 	drv = lookup_driver();
 	if(drv==NULL) {
-		fprintf(stderr,"%s error: no suitable driver found for dbms type %s\n", argv[0], dbms);		
+		fprintf(stderr,"%s error: no suitable driver found for dbms type %s\n", nargv[0], dbms);
 		exit(1);
 	}
 
@@ -481,12 +523,12 @@ void initDbtoy(int argc, char * argv[]) {
 		conn = drv->connect(hostname, login, passwd);
 	}
 	if(conn==NULL) {
-		fprintf(stderr,"%s error: connection to the database failed\n", argv[0]);
+		fprintf(stderr,"%s error: connection to the database failed\n", nargv[0]);
 		fprintf(stderr,"please check these parameters: username=%s, driver=%s\n", login, dbms);
 		exit(1);
 	}
 	
-	openlog(argv[0],0,LOG_USER);
+	openlog(nargv[0],0,LOG_USER);
 	syslog(LOG_INFO,"Started successfully");
 }
 
