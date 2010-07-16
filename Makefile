@@ -2,9 +2,8 @@
 # (customize if needed)
 CC=gcc
 CLIENT_FLAGS := -g
-HERE :=`basename $(PWD)`
-FUSE_FLAGS	:= `pkg-config --cflags fuse`
-FUSE_LIBS	:= `pkg-config --libs fuse`
+DEP_FLAGS	:= `pkg-config --cflags fuse`
+DEP_LIBS	:= `pkg-config --libs fuse` -lapp
 OBJS := dbtoy.o largetext.o xml_format.o
 DRIVERLIST = ""
 PREFIX=/usr/local
@@ -27,10 +26,10 @@ endif
 
 dbtoy: $(OBJS)
 	@echo "Building with the following drivers: $(DRIVERLIST)"
-	$(CC) -o dbtoy $(OBJS) $(FUSE_LIBS) $(CLIENT_LIBS)
+	$(CC) -o dbtoy $(OBJS) $(DEP_LIBS) $(CLIENT_LIBS)
 
 .c.o:
-	$(CC) $(FUSE_FLAGS) $(CLIENT_FLAGS) -c $< -o $@
+	$(CC) $(DEP_FLAGS) $(CLIENT_FLAGS) -c $< -o $@
 
 #Dependencies
 dbtoy.o: dbtoy.c dbtoy.h xml_format.h largetext.h

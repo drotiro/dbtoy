@@ -18,6 +18,8 @@
 #include <unistd.h>
 #include <syslog.h>
 
+#include <libapp/app.h>
+
 #include "dbtoy.h"
 #include "xml_format.h"
 #include "largetext.h"
@@ -52,7 +54,7 @@ char *	passwd	= NULL;
 char *	prolog	= NULL;
 char *	dbms		= NULL;
 char *	instance	= NULL;
-int		verbose	= 0;
+bool	verbose	= false;
 
 /* read hint */
 char * rh_path = NULL;
@@ -61,41 +63,6 @@ int rh_row;
 char * rh_buf = NULL;
 
 struct dbtoy_driver * lookup_driver();
-
-/*
- * Utilities from my other projects,
- * I should move them in a lib
- */
-void set_echo(int enable)
-{
-  struct termios tio;
-  int tty = fileno(stdin); //a better way?
-
-  if(!tcgetattr(tty, &tio)) {
-    if (enable) tio.c_lflag |= ECHO;
-    else tio.c_lflag &= ~ECHO;
-
-    tcsetattr(tty, TCSANOW, &tio);
-  }
-}
-
-char * askpass(const char * what)
-{
-  char * val = malloc(512);
-  printf("%s ",what);
-  set_echo(0);
-  scanf("%s",val);
-  set_echo(1);
-  printf("\n");
-  return val;
-}
-
-void wipeopt(char * opt)
-{
-	memset(opt, 0, strlen(opt));
-}
-
-
 
 void set_read_hint(const char * path, off_t offset, int currow, char * buf)
 {
@@ -166,7 +133,6 @@ int table_exists(const char * path) {
 }
 
 void split_path(const char * path, char * name, char * tabname) {
-	int len;
 	char * p1, *p2;
 	p1 = strchr(path+1,'/');
 	p2 = strchr(p1+1,'/');
@@ -433,61 +399,48 @@ static struct fuse_operations dbtoy_oper = {
     .read	= dbtoy_read,
 };
 
-int parse_args(int argc , char* argv[])
+void dbtoy_usage(app* this, const char * anopt)
 {
-	int opt;
-	int res = 0;
-	while (1) 
-    {
-		opt=getopt(argc,argv,"h:u:p:x:d:i:v");
-		if(opt==EOF) break;
-		switch((char)opt) {
-		case 'h':
-			hostname=optarg;
-			break;
-		case 'u':
-			login=optarg;
-			break;	
-		case 'p':
-			passwd=optarg;
-			wipeopt(optarg);
-			break;
-		case 'x':
-			prolog = optarg;
-			break;
-		case 'd':
-			dbms = optarg;
-			break;
-		case 'i':
-			instance = optarg;
-			break;
-		case 'v':
-			verbose = 1;
-			break;
-		default:
-			res = 1;
-		}
-	}
-
-	if(login==NULL || dbms==NULL) res=1;
-	if(passwd==NULL && !res) {
-		passwd = askpass("password: ");
-	}
-	if(res) {
-		fprintf(stderr,"Usage: %s -u user -d driver [ optional_params ] mountpoint\n",argv[0]);
-		fprintf(stderr,"\nValid drivers:\n");
+	if(anopt) fprintf(stderr,"Wrong or invalid option '%s'\n", anopt);
+	fprintf(stderr,"Usage: %s -u user -d driver [ optional_params ] mountpoint\n",
+		app_get_program_name(this));
+	fprintf(stderr,"\nValid drivers:\n");
 #ifdef HAVE_POSTGRESQL_DRV
-		fprintf(stderr,"\tpostgresql\n");
+	fprintf(stderr,"\tpostgresql\n");
 #endif
 #ifdef HAVE_MYSQL_DRV
-		fprintf(stderr,"\tmysql\n");
+	fprintf(stderr,"\tmysql\n");
 #endif		
-		fprintf(stderr,"\nOptional parameters:\n");
-		fprintf(stderr,"\t-p password  (dbtoy will prompt for the password if not present)\n");
-		fprintf(stderr,"\t-h host      (where the database is running)\n");
-		fprintf(stderr,"\t-i instance  (to choose a PostgreSQL database, the default is the same as username)\n");
-		fprintf(stderr,"\t-v           (enable verbose syslogging)\n");
-		fprintf(stderr,"\t-x 'xml prolog'\n\n");
+	fprintf(stderr,"\nOptional parameters:\n");
+	fprintf(stderr,"\t-p password  (dbtoy will prompt for the password if not present)\n");
+	fprintf(stderr,"\t-h host      (where the database is running)\n");
+	fprintf(stderr,"\t-i instance  (to choose a PostgreSQL database, the default is the same as username)\n");
+	fprintf(stderr,"\t-v           (enable verbose syslogging)\n");
+	fprintf(stderr,"\t-x 'xml prolog'\n\n");
+}
+
+bool parse_args(app* this, int argc , char* argv[])
+{
+	bool res;
+
+	app_opt_add_short(this, 'h', OPT_STRING, &hostname);
+	app_opt_add_short(this, 'u', OPT_STRING, &login);
+	app_opt_add_short(this, 'p', OPT_PASSWD, &passwd);
+	app_opt_add_short(this, 'x', OPT_STRING, &prolog);
+	app_opt_add_short(this, 'd', OPT_STRING, &dbms);
+	app_opt_add_short(this, 'i', OPT_STRING, &instance);
+	app_opt_add_short(this, 'v', OPT_FLAG, &verbose);
+	app_opt_on_error(this, &dbtoy_usage);
+	
+	res = app_parse_opts(this, argc, argv);
+	
+	if(res && (login==NULL || dbms==NULL)) {
+		fprintf(stderr, "A required parameter is missing\n");
+		dbtoy_usage(this, NULL);		
+		res = false;
+	}
+	if(passwd==NULL && res) {
+		passwd = app_term_askpass("password: ");
 	}
 	return res;
 }
@@ -504,11 +457,16 @@ struct dbtoy_driver * lookup_driver()
 }
 
 void initDbtoy(int argc, char * argv[]) {
-	nargv[0]=basename(strdup(argv[0])); //keep program name
-	nargv[nargc-1]=argv[argc-1]; //keep mountpoint
-	if(parse_args(argc,argv)) {
+	bool res;
+	app* this = app_new();
+
+	res = parse_args(this, argc, argv);
+	if(!res) {
+		app_free(this);
 		exit(1);
 	}
+	nargv[0] = (char*) app_get_program_name(this); //keep program name
+	nargv[nargc-1] = argv[argc-1]; //keep mountpoint
 
 	/* choose driver and connect */
 	drv = lookup_driver();
@@ -530,6 +488,7 @@ void initDbtoy(int argc, char * argv[]) {
 	
 	openlog(nargv[0],0,LOG_USER);
 	syslog(LOG_INFO,"Started successfully");
+	app_free(this);
 }
 
 void cleanDbtoy() {
