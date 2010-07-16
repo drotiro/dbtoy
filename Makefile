@@ -7,6 +7,7 @@ FUSE_FLAGS	:= `pkg-config --cflags fuse`
 FUSE_LIBS	:= `pkg-config --libs fuse`
 OBJS := dbtoy.o largetext.o xml_format.o
 DRIVERLIST = ""
+PREFIX=/usr/local
 
 include Makefile.config
 
@@ -39,7 +40,10 @@ largetext.o: largetext.c largetext.h
 xml_format.o: xml_format.c xml_format.h largetext.h dbtoy.h
 
 
-.PHONY: clean 
+.PHONY: clean
 
 clean:
-	rm -f *.o dbtoy *~ Makefile.config
+	rm -f *.o dbtoy *~ 
+
+install: dbtoy
+	install -s dbtoy $(PREFIX)/bin
