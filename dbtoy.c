@@ -440,7 +440,7 @@ bool parse_args(app* this, int argc , char* argv[])
 		res = false;
 	}
 	if(passwd==NULL && res) {
-		passwd = app_term_askpass("password: ");
+		passwd = app_term_askpass("password:");
 	}
 	return res;
 }
