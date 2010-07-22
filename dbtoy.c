@@ -419,7 +419,7 @@ void dbtoy_usage(app* this, const char * anopt)
 	fprintf(stderr,"\t-x 'xml prolog'\n\n");
 }
 
-bool parse_args(app* this, int argc , char* argv[])
+bool parse_args(app* this, int *argc , char** argv[])
 {
 	bool res;
 
@@ -439,6 +439,17 @@ bool parse_args(app* this, int argc , char* argv[])
 		dbtoy_usage(this, NULL);		
 		res = false;
 	}
+	
+	if(*argc<1) {
+		fprintf(stderr, "Missing mountpoint\n");
+		dbtoy_usage(this, NULL);
+		res = false;
+	}
+	
+	if(*argc>1) {
+		fprintf(stderr, "Warning: ignoring extra arguments on the command line\n");
+	}
+	
 	if(passwd==NULL && res) {
 		passwd = app_term_askpass("password:");
 	}
@@ -460,13 +471,13 @@ void initDbtoy(int argc, char * argv[]) {
 	bool res;
 	app* this = app_new();
 
-	res = parse_args(this, argc, argv);
+	res = parse_args(this, &argc, &argv);
 	if(!res) {
 		app_free(this);
 		exit(1);
 	}
 	nargv[0] = (char*) app_get_program_name(this); //keep program name
-	nargv[nargc-1] = argv[argc-1]; //keep mountpoint
+	nargv[nargc-1] = argv[0]; //keep mountpoint
 
 	/* choose driver and connect */
 	drv = lookup_driver();
