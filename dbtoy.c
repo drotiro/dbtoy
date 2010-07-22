@@ -421,39 +421,37 @@ void dbtoy_usage(app* this, const char * anopt)
 
 bool parse_args(app* this, int *argc , char** argv[])
 {
-	bool res;
-
-	app_opt_add_short(this, 'h', OPT_STRING, &hostname);
-	app_opt_add_short(this, 'u', OPT_STRING, &login);
-	app_opt_add_short(this, 'p', OPT_PASSWD, &passwd);
-	app_opt_add_short(this, 'x', OPT_STRING, &prolog);
-	app_opt_add_short(this, 'd', OPT_STRING, &dbms);
-	app_opt_add_short(this, 'i', OPT_STRING, &instance);
-	app_opt_add_short(this, 'v', OPT_FLAG, &verbose);
+	app_opt_add_string(this, 'h', &hostname);
+	app_opt_add_string(this, 'u', &login);
+	app_opt_add_pass(this, 'p', &passwd);
+	app_opt_add_string(this, 'x', &prolog);
+	app_opt_add_string(this, 'd', &dbms);
+	app_opt_add_string(this, 'i', &instance);
+	app_opt_add_flag(this, 'v', &verbose);
 	app_opt_on_error(this, &dbtoy_usage);
 	
-	res = app_parse_opts(this, argc, argv);
+	if(!app_parse_opts(this, argc, argv)) return false;
 	
-	if(res && (login==NULL || dbms==NULL)) {
-		fprintf(stderr, "A required parameter is missing\n");
+	if(login==NULL || dbms==NULL) {
+		fprintf(stderr, "Error: a required parameter is missing\n");
 		dbtoy_usage(this, NULL);		
-		res = false;
+		return false;
 	}
 	
 	if(*argc<1) {
-		fprintf(stderr, "Missing mountpoint\n");
+		fprintf(stderr, "Error: missing mountpoint\n");
 		dbtoy_usage(this, NULL);
-		res = false;
+		return false;
 	}
-	
+
 	if(*argc>1) {
 		fprintf(stderr, "Warning: ignoring extra arguments on the command line\n");
 	}
-	
-	if(passwd==NULL && res) {
+
+	if(passwd==NULL) {
 		passwd = app_term_askpass("password:");
 	}
-	return res;
+	return true;
 }
 
 struct dbtoy_driver * lookup_driver()

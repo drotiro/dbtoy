@@ -42,7 +42,7 @@ xml_format.o: xml_format.c xml_format.h largetext.h dbtoy.h
 .PHONY: clean
 
 clean:
-	rm -f *.o dbtoy *~ 
+	rm -f *.o dbtoy
 
 install: dbtoy
 	install -s dbtoy $(PREFIX)/bin
