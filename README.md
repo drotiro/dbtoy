@@ -61,16 +61,16 @@ Inside the dirs there is one file with the description of the datatypes
 and another with the data. Ex.:
 
 * mountpoint
- * schema 1
- *  ...
- * schema N
-     * table 1
-         * data
-         * types
-     *  ...
-     * table M
-         * data
-         * types
+    * schema 1
+    *  ...
+    * schema N
+        * table 1
+            * data
+            * types
+        *  ...
+        * table M
+            * data
+            * types
 
 You can "cat mountpoint/schemaN/tableM/types" to see a description of the table,
 or look at the data.
