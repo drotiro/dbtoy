@@ -42,17 +42,23 @@ Playing with dbtoy
 database. 
 2. Modprobe fuse kernel module.
 3. Run dbtoy passing your credentials and the mount point.
-To see a list of options run dbtoy without arguments.
-<p>Here's some example:
-<p>Connecting to MySQL running on a remote server:
-<p>`dbtoy -u username -p password -h remotehost -d mysql /mnt/dbtoy`
-<p>Connecting to PostgreSQL running locally:
-<p>`dbtoy -u postgres -p '' -d postgresql -i postgres /mnt/dbtoy`
-4. Walk through your filesystem.
 
-Each schema has its own directory, containing one subdirectory for
-every table. Inside the dirs there is one file with the description of
-the datatypes and another with the data. Ex.:
+To see a list of options run dbtoy without arguments.
+
+Here's some example:
+
+Connecting to MySQL running on a remote server:
+
+    dbtoy -u username -p password -h remotehost -d mysql /mnt/dbtoy
+
+Connecting to PostgreSQL running locally:
+
+    dbtoy -u postgres -p '' -d postgresql -i postgres /mnt/dbtoy
+
+Then, walk through your filesystem. Each schema has its own directory, 
+containing one subdirectory for every table.
+Inside the dirs there is one file with the description of the datatypes
+and another with the data. Ex.:
 
 * mountpoint
  * schema 1
