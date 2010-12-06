@@ -146,12 +146,6 @@ void parse_clause(const char * pars){
 	if(pars[0]!='?') return;
 	strcpy(qs," where ");
 	strcpy(qs+7,pars+1);
-	/*
-	struct lt * lq;
-	qs = NULL;
-	if(pars[0]!='?') return;
-	lq = lt_new_v(" where ");
-	*/	
 }
 
 static int dbtoy_getattr(const char *path, struct stat *stbuf)
@@ -421,14 +415,18 @@ void dbtoy_usage(app* this, const char * anopt)
 
 bool parse_args(app* this, int *argc , char** argv[])
 {
-	app_opt_add_string(this, 'h', &hostname);
-	app_opt_add_string(this, 'u', &login);
-	app_opt_add_pass(this, 'p', &passwd);
-	app_opt_add_string(this, 'x', &prolog);
-	app_opt_add_string(this, 'd', &dbms);
-	app_opt_add_string(this, 'i', &instance);
-	app_opt_add_flag(this, 'v', &verbose);
+	opt toyopts[] = {
+		{'h', NULL, OPT_STRING, &hostname},
+		{'u', NULL, OPT_STRING, &login   },
+		{'p', NULL, OPT_PASSWD, &passwd  },
+		{'x', NULL, OPT_STRING, &prolog  },
+		{'d', NULL, OPT_STRING, &dbms    },
+		{'i', NULL, OPT_STRING, &instance},
+		{'v', NULL, OPT_FLAG,   &verbose }
+	};
+	
 	app_opt_on_error(this, &dbtoy_usage);
+	app_opts_add(this, toyopts, sizeof(toyopts)/sizeof(toyopts[0]));
 	
 	if(!app_parse_opts(this, argc, argv)) return false;
 	
