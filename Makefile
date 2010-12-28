@@ -25,8 +25,8 @@ ifdef POSTGRESQL_DRV
 endif
 
 dbtoy: $(OBJS)
-	@echo "Building with the following drivers: $(DRIVERLIST)"
-	$(CC) -o dbtoy $(OBJS) $(DEP_LIBS) $(CLIENT_LIBS)
+	@echo "Building $@ with the following drivers: $(DRIVERLIST)"
+	@$(CC) -o $@ $(OBJS) $(DEP_LIBS) $(CLIENT_LIBS)
 
 .c.o:
 	@echo Compiling $<
@@ -41,6 +41,10 @@ xml_format.o: xml_format.c xml_format.h largetext.h dbtoy.h
 
 
 .PHONY: clean
+
+Makefile.config:
+	@echo "*** Makefile.config not found. Please run 'makeall.sh' to generate it."
+	@exit 1
 
 clean:
 	rm -f *.o dbtoy
